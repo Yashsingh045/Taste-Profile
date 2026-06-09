@@ -10,13 +10,17 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { LinearGradient } from 'expo-linear-gradient';
 import { GlassCard } from './GlassCard';
 import { Food, SwipeAction } from '../types/food';
 import { colors, radius, spacing, typography } from '../theme';
 
-const SWIPE_THRESHOLD = 110;
-const SUPER_LIKE_Y_THRESHOLD = -90;
+const SWIPE_X_THRESHOLD = 110;
+const SWIPE_Y_THRESHOLD = 110;
 const FLY_DURATION = 220;
+const BADGE_FADE_IN = 80;
+
+const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
 export interface SwipeCardHandle {
   swipe: (action: SwipeAction) => void;
@@ -33,7 +37,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
   { food, onSwiped, isTop, stackOffset = 0 },
   ref,
 ) {
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const opacity = useSharedValue(1);
@@ -44,14 +48,17 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
 
   const flyOff = (action: SwipeAction) => {
     'worklet';
-    const targetX =
-      action === 'like' || action === 'super'
-        ? screenWidth * 1.2
-        : action === 'dislike'
-          ? -screenWidth * 1.2
-          : 0;
-    const targetY = action === 'super' ? -screenWidth : action === 'skip' ? screenWidth * 0.8 : translateY.value;
-
+    let targetX = 0;
+    let targetY = 0;
+    if (action === 'like') {
+      targetX = screenWidth * 1.2;
+    } else if (action === 'dislike') {
+      targetX = -screenWidth * 1.2;
+    } else if (action === 'super') {
+      targetY = -screenHeight;
+    } else if (action === 'skip') {
+      targetY = screenHeight * 0.9;
+    }
     translateX.value = withTiming(targetX, { duration: FLY_DURATION });
     translateY.value = withTiming(targetY, { duration: FLY_DURATION });
     opacity.value = withTiming(0, { duration: FLY_DURATION }, () => {
@@ -60,9 +67,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
   };
 
   useImperativeHandle(ref, () => ({
-    swipe: (action) => {
-      flyOff(action);
-    },
+    swipe: (action) => flyOff(action),
   }));
 
   const pan = Gesture.Pan()
@@ -76,15 +81,21 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
     .onEnd(() => {
       const x = translateX.value;
       const y = translateY.value;
-      if (y < SUPER_LIKE_Y_THRESHOLD && Math.abs(x) < SWIPE_THRESHOLD) {
+      const verticalDominant = Math.abs(y) > Math.abs(x) * 0.8;
+
+      if (verticalDominant && y < -SWIPE_Y_THRESHOLD) {
         flyOff('super');
         return;
       }
-      if (x > SWIPE_THRESHOLD) {
+      if (verticalDominant && y > SWIPE_Y_THRESHOLD) {
+        flyOff('skip');
+        return;
+      }
+      if (x > SWIPE_X_THRESHOLD) {
         flyOff('like');
         return;
       }
-      if (x < -SWIPE_THRESHOLD) {
+      if (x < -SWIPE_X_THRESHOLD) {
         flyOff('dislike');
         return;
       }
@@ -93,7 +104,12 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
     });
 
   const animatedStyle = useAnimatedStyle(() => {
-    const rotate = interpolate(translateX.value, [-screenWidth / 2, 0, screenWidth / 2], [-12, 0, 12], Extrapolation.CLAMP);
+    const rotate = interpolate(
+      translateX.value,
+      [-screenWidth / 2, 0, screenWidth / 2],
+      [-12, 0, 12],
+      Extrapolation.CLAMP,
+    );
     const scale = isTop ? 1 : 1 - stackOffset * 0.04;
     return {
       transform: [
@@ -106,14 +122,17 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
     };
   });
 
-  const likeBadgeStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(translateX.value, [0, 80], [0, 1], Extrapolation.CLAMP),
+  const yesStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(translateX.value, [0, BADGE_FADE_IN], [0, 1], Extrapolation.CLAMP),
   }));
-  const dislikeBadgeStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(translateX.value, [-80, 0], [1, 0], Extrapolation.CLAMP),
+  const noStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(translateX.value, [-BADGE_FADE_IN, 0], [1, 0], Extrapolation.CLAMP),
   }));
-  const superBadgeStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(translateY.value, [-120, -40], [1, 0], Extrapolation.CLAMP),
+  const superStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(translateY.value, [-BADGE_FADE_IN, 0], [1, 0], Extrapolation.CLAMP),
+  }));
+  const unsureStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(translateY.value, [0, BADGE_FADE_IN], [0, 1], Extrapolation.CLAMP),
   }));
 
   return (
@@ -126,14 +145,27 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
           </View>
           <Text style={styles.text}>I love eating {food.name.toLowerCase()}</Text>
 
-          <Animated.View style={[styles.badge, styles.badgeLike, likeBadgeStyle]} pointerEvents="none">
-            <Text style={styles.badgeText}>LIKE</Text>
+          <Animated.View style={[styles.blob, styles.blobNo, noStyle]} pointerEvents="none">
+            <Text style={styles.blobTextDark}>No</Text>
           </Animated.View>
-          <Animated.View style={[styles.badge, styles.badgeDislike, dislikeBadgeStyle]} pointerEvents="none">
-            <Text style={styles.badgeText}>NOPE</Text>
+
+          <Animated.View style={[styles.blob, styles.blobYes, yesStyle]} pointerEvents="none">
+            <Text style={styles.blobTextDark}>Yes</Text>
           </Animated.View>
-          <Animated.View style={[styles.badgeSuper, superBadgeStyle]} pointerEvents="none">
-            <Text style={styles.badgeText}>SUPER</Text>
+
+          <AnimatedLinearGradient
+            colors={['#3B5BFF', '#9B5BD6']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[styles.superPill, superStyle]}
+            pointerEvents="none"
+          >
+            <Text style={styles.superText}>Superlike </Text>
+            <Text style={styles.superStar}>🌟</Text>
+          </AnimatedLinearGradient>
+
+          <Animated.View style={[styles.unsurePill, unsureStyle]} pointerEvents="none">
+            <Text style={styles.unsureText}>Unsure</Text>
           </Animated.View>
         </GlassCard>
       </Animated.View>
@@ -188,38 +220,65 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     textAlign: 'center',
   },
-  badge: {
+  blob: {
     position: 'absolute',
-    top: 40,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: radius.sm,
-    borderWidth: 3,
-    transform: [{ rotate: '-12deg' }],
+    top: 36,
+    paddingHorizontal: 22,
+    paddingVertical: 10,
+    borderRadius: 24,
+    minWidth: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  badgeLike: {
-    right: 28,
-    borderColor: colors.actionLike,
-  },
-  badgeDislike: {
+  blobNo: {
     left: 28,
-    borderColor: colors.actionDislike,
-    transform: [{ rotate: '12deg' }],
+    backgroundColor: '#F44C3D',
+    transform: [{ rotate: '-14deg' }],
   },
-  badgeSuper: {
-    position: 'absolute',
-    top: 40,
-    alignSelf: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: radius.sm,
-    borderWidth: 3,
-    borderColor: colors.actionSuper,
+  blobYes: {
+    right: 28,
+    backgroundColor: '#5BD688',
+    transform: [{ rotate: '14deg' }],
   },
-  badgeText: {
+  blobTextDark: {
     ...typography.button,
-    color: colors.textPrimary,
-    fontSize: 22,
-    letterSpacing: 2,
+    color: '#0A0A0A',
+    fontSize: 24,
+    lineHeight: 26,
+  },
+  superPill: {
+    position: 'absolute',
+    top: 36,
+    alignSelf: 'center',
+    paddingHorizontal: 22,
+    paddingVertical: 10,
+    borderRadius: radius.pill,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  superText: {
+    ...typography.button,
+    color: '#FFFFFF',
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  superStar: {
+    fontSize: 20,
+    lineHeight: 24,
+  },
+  unsurePill: {
+    position: 'absolute',
+    bottom: 60,
+    alignSelf: 'center',
+    paddingHorizontal: 22,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    backgroundColor: '#E5E5E5',
+  },
+  unsureText: {
+    ...typography.button,
+    color: '#1A1A1A',
+    fontSize: 18,
+    lineHeight: 22,
   },
 });
