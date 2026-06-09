@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomNav, TabKey } from '../components/BottomNav';
 import { IntroScreen } from '../screens/IntroScreen';
 import { FaqScreen } from '../screens/FaqScreen';
@@ -9,7 +10,7 @@ import { useUi } from '../context/UiContext';
 import { RootStackParamList } from './types';
 
 export function MainTabs() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { activeTab, setActiveTab } = useUi();
 
   const goToSwipe = () => navigation.navigate('Swipe');

@@ -1,6 +1,6 @@
 import React from 'react';
-import { NavigationContainer, DefaultTheme, NavigationProp, useNavigation } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer, DefaultTheme, useNavigation } from '@react-navigation/native';
+import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MainTabs } from './MainTabs';
 import { SwipeScreen } from '../screens/SwipeScreen';
 import { ResultsScreen } from '../screens/ResultsScreen';
@@ -25,12 +25,12 @@ const navTheme = {
 };
 
 function SwipeScreenContainer() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return <SwipeScreen onComplete={() => navigation.replace('Results')} />;
 }
 
 function ResultsScreenContainer() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { setActiveTab } = useUi();
   return (
     <ResultsScreen
