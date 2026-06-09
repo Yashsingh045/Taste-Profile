@@ -1,24 +1,31 @@
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StyleSheet } from 'react-native';
+import { RootNavigator } from './src/navigation/RootNavigator';
+import { TasteProfileProvider } from './src/context/TasteProfileContext';
+import { UiProvider } from './src/context/UiContext';
+import { colors } from './src/theme';
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>CalorAI Taste Profile</Text>
-      <StatusBar style="light" />
-    </View>
+    <GestureHandlerRootView style={styles.root}>
+      <SafeAreaProvider>
+        <UiProvider>
+          <TasteProfileProvider>
+            <RootNavigator />
+            <StatusBar style="light" />
+          </TasteProfileProvider>
+        </UiProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: '#000000',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    color: '#ffffff',
-    fontSize: 18,
+    backgroundColor: colors.background,
   },
 });
