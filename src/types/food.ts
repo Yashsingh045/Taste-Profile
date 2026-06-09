@@ -22,6 +22,14 @@ export interface SwipeRecord {
   action: SwipeAction;
 }
 
+export interface CategoryBreakdown {
+  category: FoodCategory;
+  label: string;
+  emoji: string;
+  count: number;
+  percent: number;
+}
+
 export interface TasteProfile {
   liked: Food[];
   disliked: Food[];
@@ -29,6 +37,8 @@ export interface TasteProfile {
   skipped: Food[];
   favoriteCuisines: Cuisine[];
   dislikedFoods: Food[];
+  lovedFoods: Food[];
+  categoryBreakdown: CategoryBreakdown[];
   highlights: TasteHighlight[];
 }
 

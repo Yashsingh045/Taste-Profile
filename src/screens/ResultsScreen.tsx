@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientBackground } from '../components/GradientBackground';
@@ -7,7 +7,6 @@ import { ResultListItem } from '../components/ResultListItem';
 import { HorizontalPager } from '../components/HorizontalPager';
 import { BackButton } from '../components/BackButton';
 import { useTasteProfile } from '../context/TasteProfileContext';
-import { foods } from '../data/foods';
 import { colors, radius, spacing, typography } from '../theme';
 
 interface Props {
@@ -18,17 +17,7 @@ interface Props {
 
 export function ResultsScreen({ onSeeProfile, onBack, bottomInset = 96 }: Props) {
   const insets = useSafeAreaInsets();
-  const { profile, records, reset } = useTasteProfile();
-
-  const totals = useMemo(
-    () => ({
-      liked: profile.liked.length,
-      disliked: profile.disliked.length,
-      superLiked: profile.superLiked.length,
-      total: records.length,
-    }),
-    [profile, records.length],
-  );
+  const { profile, reset } = useTasteProfile();
 
   const hatePage = (
     <ResultCard
@@ -74,6 +63,57 @@ export function ResultsScreen({ onSeeProfile, onBack, bottomInset = 96 }: Props)
     </ResultCard>
   );
 
+  const lovePage = (
+    <ResultCard
+      emoji="❤️"
+      title="Foods You Love"
+      subtitle="These will headline your meal plan"
+    >
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {profile.lovedFoods.length === 0 ? (
+          <Text style={styles.empty}>Swipe right (or super-like) a few foods to populate this.</Text>
+        ) : (
+          profile.lovedFoods.map((food, i) => (
+            <ResultListItem
+              key={food.id}
+              label={food.name}
+              icon="heart"
+              iconBg={colors.actionSuper}
+              divider={i < profile.lovedFoods.length - 1}
+            />
+          ))
+        )}
+      </ScrollView>
+    </ResultCard>
+  );
+
+  const categoriesPage = (
+    <ResultCard
+      emoji="🍽️"
+      title="Categories You Crave"
+      subtitle="The food groups that won your swipes"
+    >
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {profile.categoryBreakdown.length === 0 ? (
+          <Text style={styles.empty}>Like a few foods to see your category mix.</Text>
+        ) : (
+          profile.categoryBreakdown.map((row, i) => (
+            <View key={row.category} style={styles.categoryRow}>
+              <View style={styles.categoryLeft}>
+                <Text style={styles.categoryEmoji}>{row.emoji}</Text>
+                <Text style={styles.categoryLabel}>{row.label}</Text>
+              </View>
+              <Text style={styles.categoryPercent}>
+                {row.count} · {row.percent}%
+              </Text>
+              {i < profile.categoryBreakdown.length - 1 && <View style={styles.categoryDivider} />}
+            </View>
+          ))
+        )}
+      </ScrollView>
+    </ResultCard>
+  );
+
   const handleReset = () => {
     reset();
     onBack?.();
@@ -89,15 +129,10 @@ export function ResultsScreen({ onSeeProfile, onBack, bottomInset = 96 }: Props)
       >
         <View style={styles.header}>
           <BackButton onPress={onBack} />
-          <Text style={styles.title}>Your Results</Text>
-          <Text style={styles.subtitle}>
-            {totals.liked} liked · {totals.disliked} disliked · {totals.superLiked} super
-            {totals.total < foods.length ? `  (${totals.total}/${foods.length} swiped)` : ''}
-          </Text>
         </View>
 
         <View style={styles.carousel}>
-          <HorizontalPager pages={[hatePage, cuisinePage]} />
+          <HorizontalPager pages={[hatePage, lovePage, cuisinePage, categoriesPage]} />
         </View>
 
         <View style={styles.footer}>
@@ -123,16 +158,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.lg,
-    gap: spacing.sm,
-  },
-  title: {
-    ...typography.title,
-    color: colors.textPrimary,
-    marginTop: spacing.sm,
-  },
-  subtitle: {
-    ...typography.body,
-    color: colors.textSecondary,
+    paddingBottom: spacing.sm,
   },
   carousel: {
     flex: 1,
@@ -143,6 +169,36 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     paddingVertical: spacing.lg,
     textAlign: 'center',
+  },
+  categoryRow: {
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+  },
+  categoryLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    flex: 1,
+  },
+  categoryEmoji: {
+    fontSize: 22,
+  },
+  categoryLabel: {
+    ...typography.bodyLg,
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  categoryPercent: {
+    ...typography.body,
+    color: colors.textSecondary,
+    position: 'absolute',
+    right: 0,
+    top: spacing.sm + 2,
+  },
+  categoryDivider: {
+    marginTop: spacing.sm,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
   },
   footer: {
     paddingHorizontal: spacing.lg,

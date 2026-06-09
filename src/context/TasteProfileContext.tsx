@@ -1,7 +1,16 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { foods } from '../data/foods';
 import { cuisines, cuisineForTag } from '../data/cuisines';
-import { Cuisine, Food, SwipeAction, SwipeRecord, TasteHighlight, TasteProfile } from '../types/food';
+import {
+  CategoryBreakdown,
+  Cuisine,
+  Food,
+  FoodCategory,
+  SwipeAction,
+  SwipeRecord,
+  TasteHighlight,
+  TasteProfile,
+} from '../types/food';
 
 interface TasteProfileContextValue {
   records: SwipeRecord[];
@@ -66,6 +75,7 @@ function deriveProfile(records: SwipeRecord[]): TasteProfile {
   const skipped = bucket('skip');
 
   const positive = [...liked, ...superLiked, ...superLiked]; // super counted twice
+  const lovedFoods = dedupeById([...superLiked, ...liked]);
 
   return {
     liked,
@@ -74,8 +84,45 @@ function deriveProfile(records: SwipeRecord[]): TasteProfile {
     skipped,
     favoriteCuisines: deriveFavoriteCuisines(positive),
     dislikedFoods: disliked,
+    lovedFoods,
+    categoryBreakdown: deriveCategoryBreakdown(lovedFoods),
     highlights: deriveHighlights(positive),
   };
+}
+
+function dedupeById(items: Food[]): Food[] {
+  const seen = new Set<number>();
+  const result: Food[] = [];
+  for (const item of items) {
+    if (!seen.has(item.id)) {
+      seen.add(item.id);
+      result.push(item);
+    }
+  }
+  return result;
+}
+
+const CATEGORY_META: Record<FoodCategory, { label: string; emoji: string }> = {
+  protein: { label: 'Protein', emoji: '🥩' },
+  carb: { label: 'Carbs', emoji: '🍞' },
+  vegetable: { label: 'Vegetables', emoji: '🥦' },
+  other: { label: 'Other', emoji: '🍱' },
+};
+
+function deriveCategoryBreakdown(foods: Food[]): CategoryBreakdown[] {
+  const total = foods.length;
+  if (total === 0) return [];
+  const counts = new Map<FoodCategory, number>();
+  foods.forEach((f) => counts.set(f.category, (counts.get(f.category) ?? 0) + 1));
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([category, count]) => ({
+      category,
+      label: CATEGORY_META[category].label,
+      emoji: CATEGORY_META[category].emoji,
+      count,
+      percent: Math.round((count / total) * 100),
+    }));
 }
 
 function deriveFavoriteCuisines(positive: Food[]): Cuisine[] {

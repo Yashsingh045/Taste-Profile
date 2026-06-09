@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import * as Haptics from 'expo-haptics';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ProgressBar } from '../components/ProgressBar';
 import { SwipeActionButtons } from '../components/SwipeActionButtons';
@@ -9,7 +10,7 @@ import { GradientBackground } from '../components/GradientBackground';
 import { useTasteProfile } from '../context/TasteProfileContext';
 import { foods } from '../data/foods';
 import { SwipeAction } from '../types/food';
-import { spacing } from '../theme';
+import { colors, radius, spacing, typography } from '../theme';
 
 interface Props {
   onComplete: () => void;
@@ -17,7 +18,7 @@ interface Props {
 
 export function SwipeScreen({ onComplete }: Props) {
   const insets = useSafeAreaInsets();
-  const { recordSwipe } = useTasteProfile();
+  const { recordSwipe, undo } = useTasteProfile();
   const [index, setIndex] = useState(0);
   const topCardRef = useRef<SwipeCardHandle>(null);
 
@@ -48,6 +49,15 @@ export function SwipeScreen({ onComplete }: Props) {
     topCardRef.current?.swipe(action);
   }, []);
 
+  const handleUndo = useCallback(() => {
+    if (index === 0) return;
+    if (Platform.OS !== 'web') {
+      Haptics.selectionAsync().catch(() => {});
+    }
+    undo();
+    setIndex((i) => Math.max(0, i - 1));
+  }, [index, undo]);
+
   const progress = useMemo(() => index / foods.length, [index]);
 
   const visibleCards = foods.slice(index, index + 3).reverse();
@@ -55,8 +65,28 @@ export function SwipeScreen({ onComplete }: Props) {
   return (
     <GradientBackground>
       <View style={[styles.container, { paddingTop: insets.top + spacing.xs, paddingBottom: insets.bottom + spacing.lg }]}>
-        <View style={styles.progressWrap}>
-          <ProgressBar value={progress} />
+        <View style={styles.progressRow}>
+          <View style={styles.progressFlex}>
+            <ProgressBar value={progress} />
+          </View>
+          <Pressable
+            onPress={handleUndo}
+            disabled={index === 0}
+            accessibilityRole="button"
+            accessibilityLabel="Undo last swipe"
+            style={({ pressed }) => [
+              styles.undoButton,
+              index === 0 && styles.undoDisabled,
+              pressed && styles.undoPressed,
+            ]}
+          >
+            <Ionicons
+              name="arrow-undo"
+              size={16}
+              color={index === 0 ? colors.textDim : colors.textSecondary}
+            />
+            <Text style={[styles.undoLabel, index === 0 && styles.undoLabelDisabled]}>Undo</Text>
+          </Pressable>
         </View>
 
         <View style={styles.deck}>
@@ -88,9 +118,40 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: spacing.lg,
   },
-  progressWrap: {
+  progressRow: {
     paddingTop: spacing.sm,
     paddingBottom: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  progressFlex: {
+    flex: 1,
+  },
+  undoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xxs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+  },
+  undoDisabled: {
+    opacity: 0.4,
+  },
+  undoPressed: {
+    opacity: 0.7,
+  },
+  undoLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  undoLabelDisabled: {
+    color: colors.textDim,
   },
   deck: {
     flex: 1,
