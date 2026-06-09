@@ -72,7 +72,7 @@ export function HighlightsCarousel({ highlights, groupSize = 3 }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.xl,
   },
   empty: {
     padding: spacing.lg,
@@ -86,17 +86,17 @@ const styles = StyleSheet.create({
   page: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,
   },
   item: {
     flex: 1,
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.sm,
     paddingHorizontal: spacing.xs,
   },
   emoji: {
-    fontSize: 36,
-    lineHeight: 42,
+    fontSize: 44,
+    lineHeight: 50,
   },
   label: {
     ...typography.body,
@@ -105,11 +105,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   divider: {
-    width: StyleSheet.hairlineWidth,
-    height: 56,
-    backgroundColor: colors.border,
+    width: 1,
+    height: 64,
+    backgroundColor: 'rgba(255,255,255,0.18)',
   },
   dots: {
-    paddingTop: spacing.md,
+    paddingTop: spacing.lg,
   },
 });

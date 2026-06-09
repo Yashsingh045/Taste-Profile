@@ -16,7 +16,14 @@ export function IntroScreen({ onStart, onBack, bottomInset = 96 }: Props) {
     <ScreenContainer withBottomInset={false} contentStyle={{ paddingBottom: bottomInset }}>
       <View style={styles.header}>
         <BackButton onPress={onBack} />
-        <Text style={styles.title}>Design Your{'\n'}Food Plan</Text>
+        <Text
+          style={styles.title}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.6}
+        >
+          Design Your Food Plan
+        </Text>
       </View>
 
       <View style={styles.cardWrap}>
@@ -57,12 +64,15 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.display,
+    fontSize: 30,
+    lineHeight: 36,
     color: colors.textPrimary,
   },
   cardWrap: {
     flex: 1,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.lg,
     justifyContent: 'center',
   },
   card: {
@@ -73,24 +83,25 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   emoji: {
-    fontSize: 64,
-    lineHeight: 72,
+    fontSize: 72,
+    lineHeight: 80,
     textAlign: 'center',
   },
   heading: {
     ...typography.heading,
     color: colors.textPrimary,
     textAlign: 'center',
+    fontSize: 24,
     marginTop: spacing.sm,
   },
   body: {
     ...typography.bodyLg,
     color: colors.textSecondary,
     textAlign: 'center',
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
   },
   divider: {
-    height: spacing.lg,
+    height: spacing.xl,
   },
   bodySmall: {
     ...typography.body,
@@ -106,10 +117,10 @@ const styles = StyleSheet.create({
     minWidth: 220,
     alignItems: 'center',
     shadowColor: colors.accent,
-    shadowOpacity: 0.45,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
+    shadowOpacity: 0.7,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 14,
   },
   ctaPressed: {
     opacity: 0.85,

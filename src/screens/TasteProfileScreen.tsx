@@ -60,7 +60,7 @@ export function TasteProfileScreen({ onBack, bottomInset = 96 }: Props) {
         <View style={styles.header}>
           <BackButton onPress={onBack} />
           <Text style={styles.title}>Your Taste Profile</Text>
-          <Text style={styles.subtitle}>
+          <Text style={styles.subtitle} numberOfLines={2}>
             Tailored to your unique needs. We'll use this for recommendations and meals plans
           </Text>
         </View>
@@ -133,27 +133,29 @@ export function TasteProfileScreen({ onBack, bottomInset = 96 }: Props) {
 const styles = StyleSheet.create({
   scroll: {
     paddingHorizontal: spacing.lg,
-    gap: spacing.lg,
+    gap: spacing.xl,
   },
   header: {
     gap: spacing.sm,
   },
   title: {
     ...typography.title,
+    fontSize: 32,
     color: colors.textPrimary,
     marginTop: spacing.sm,
   },
   subtitle: {
     ...typography.body,
-    color: colors.textSecondary,
+    color: colors.textMuted,
   },
   section: {
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   sectionLabel: {
     ...typography.body,
     color: colors.textMuted,
     fontWeight: '600',
+    paddingLeft: spacing.xxs,
   },
   empty: {
     ...typography.body,

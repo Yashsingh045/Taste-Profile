@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing, typography } from '../theme';
 import { SwipeAction } from '../types/food';
@@ -13,39 +13,43 @@ interface ActionConfig {
   key: SwipeAction;
   label: string;
   bg: string;
-  glow: string;
+  shadow: string;
   icon: React.ReactNode;
 }
 
+/**
+ * Solid-colour circular action buttons with subtle coloured glow.
+ * Matches the swipe.png Figma reference: no aggressive gradients, no big halos.
+ */
 export function SwipeActionButtons({ onPress, disabled }: Props) {
   const actions: ActionConfig[] = [
     {
       key: 'dislike',
       label: 'Swipe Left',
-      bg: colors.actionDislike,
-      glow: colors.actionDislikeGlow,
-      icon: <Ionicons name="close" size={28} color="#fff" />,
+      bg: '#F2453D',
+      shadow: '#F2453D',
+      icon: <Ionicons name="close" size={26} color="#FFFFFF" />,
     },
     {
       key: 'skip',
       label: 'Not Sure',
-      bg: 'rgba(110, 110, 110, 0.85)',
-      glow: 'rgba(255,255,255,0.10)',
-      icon: <Ionicons name="help" size={26} color="#fff" />,
+      bg: '#7E8693',
+      shadow: '#7E8693',
+      icon: <Ionicons name="help" size={24} color="#FFFFFF" />,
     },
     {
       key: 'super',
       label: 'Super Like',
-      bg: colors.actionSuper,
-      glow: colors.actionSuperGlow,
-      icon: <Ionicons name="star" size={24} color="#fff" />,
+      bg: '#4664F0',
+      shadow: '#4664F0',
+      icon: <Ionicons name="star" size={22} color="#FFFFFF" />,
     },
     {
       key: 'like',
       label: 'Swipe Right',
-      bg: colors.actionLike,
-      glow: colors.actionLikeGlow,
-      icon: <Ionicons name="heart" size={26} color="#fff" />,
+      bg: '#26C160',
+      shadow: '#26C160',
+      icon: <Ionicons name="heart" size={24} color="#FFFFFF" />,
     },
   ];
 
@@ -60,8 +64,7 @@ export function SwipeActionButtons({ onPress, disabled }: Props) {
             accessibilityLabel={a.label}
             style={({ pressed }) => [
               styles.circle,
-              { backgroundColor: a.bg, shadowColor: a.bg },
-              circleGlowStyle(a.glow),
+              { backgroundColor: a.bg, shadowColor: a.shadow },
               pressed && styles.pressed,
               disabled && styles.disabled,
             ]}
@@ -73,15 +76,6 @@ export function SwipeActionButtons({ onPress, disabled }: Props) {
       ))}
     </View>
   );
-}
-
-function circleGlowStyle(_glow: string): ViewStyle {
-  return {
-    shadowOpacity: 0.55,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 10,
-  };
 }
 
 const styles = StyleSheet.create({
@@ -97,13 +91,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   circle: {
-    width: 64,
-    height: 64,
+    width: 56,
+    height: 56,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.16)',
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
   pressed: {
     transform: [{ scale: 0.94 }],

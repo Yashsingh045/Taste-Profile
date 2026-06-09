@@ -1,11 +1,13 @@
 import React, { forwardRef, useImperativeHandle } from 'react';
 import { Image, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Animated, {
+  Easing,
   Extrapolation,
   interpolate,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
@@ -18,7 +20,10 @@ import { colors, radius, spacing, typography } from '../theme';
 const SWIPE_X_THRESHOLD = 110;
 const SWIPE_Y_THRESHOLD = 110;
 const FLY_DURATION = 220;
-const BADGE_FADE_IN = 80;
+const BUTTON_SWIPE_DURATION = 650;
+const BUTTON_FADE_DELAY = 320;
+const BUTTON_FADE_DURATION = 280;
+const BADGE_FADE_IN = 60;
 
 const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
 
@@ -46,28 +51,45 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
     onSwiped(action);
   };
 
+  function targetsFor(action: SwipeAction) {
+    'worklet';
+    if (action === 'like') return { x: screenWidth * 1.2, y: 0 };
+    if (action === 'dislike') return { x: -screenWidth * 1.2, y: 0 };
+    if (action === 'super') return { x: 0, y: -screenHeight };
+    return { x: 0, y: screenHeight * 0.9 };
+  }
+
   const flyOff = (action: SwipeAction) => {
     'worklet';
-    let targetX = 0;
-    let targetY = 0;
-    if (action === 'like') {
-      targetX = screenWidth * 1.2;
-    } else if (action === 'dislike') {
-      targetX = -screenWidth * 1.2;
-    } else if (action === 'super') {
-      targetY = -screenHeight;
-    } else if (action === 'skip') {
-      targetY = screenHeight * 0.9;
-    }
-    translateX.value = withTiming(targetX, { duration: FLY_DURATION });
-    translateY.value = withTiming(targetY, { duration: FLY_DURATION });
+    const t = targetsFor(action);
+    translateX.value = withTiming(t.x, { duration: FLY_DURATION });
+    translateY.value = withTiming(t.y, { duration: FLY_DURATION });
     opacity.value = withTiming(0, { duration: FLY_DURATION }, () => {
       runOnJS(triggerSwiped)(action);
     });
   };
 
+  /**
+   * Button-driven swipe — one continuous motion. The card starts slowly
+   * (so the user sees the matching badge fade in) and accelerates off-screen.
+   * No stop-and-hold; the ease-in curve does the work.
+   */
+  const buttonSwipe = (action: SwipeAction) => {
+    'worklet';
+    const t = targetsFor(action);
+    const easing = Easing.in(Easing.cubic);
+    translateX.value = withTiming(t.x, { duration: BUTTON_SWIPE_DURATION, easing });
+    translateY.value = withTiming(t.y, { duration: BUTTON_SWIPE_DURATION, easing });
+    opacity.value = withDelay(
+      BUTTON_FADE_DELAY,
+      withTiming(0, { duration: BUTTON_FADE_DURATION }, () => {
+        runOnJS(triggerSwiped)(action);
+      }),
+    );
+  };
+
   useImperativeHandle(ref, () => ({
-    swipe: (action) => flyOff(action),
+    swipe: (action) => buttonSwipe(action),
   }));
 
   const pan = Gesture.Pan()
@@ -186,20 +208,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.xxl,
-    gap: spacing.xxl,
+    paddingVertical: spacing.xxxl,
+    gap: spacing.xxxl,
   },
   imageWrap: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     overflow: 'hidden',
     backgroundColor: colors.surfaceStrong,
     shadowColor: '#000',
     shadowOpacity: 0.4,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 12,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
   },
   image: {
     width: '100%',
@@ -211,7 +233,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 100,
+    borderRadius: 70,
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.12)',
   },

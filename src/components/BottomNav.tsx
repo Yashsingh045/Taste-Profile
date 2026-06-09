@@ -27,20 +27,20 @@ export function BottomNav({ active, onSelect, onSearch }: Props) {
     {
       key: 'start',
       label: 'Start',
-      icon: <Ionicons name="home-outline" size={22} color={colors.textSecondary} />,
-      iconActive: <Ionicons name="home" size={22} color={colors.accent} />,
+      icon: <Ionicons name="home-outline" size={24} color={colors.textSecondary} />,
+      iconActive: <Ionicons name="home" size={24} color={colors.accent} />,
     },
     {
       key: 'faq',
       label: 'FAQ',
-      icon: <Ionicons name="help-circle-outline" size={22} color={colors.textSecondary} />,
-      iconActive: <Ionicons name="help-circle" size={22} color={colors.accent} />,
+      icon: <Ionicons name="help-circle-outline" size={24} color={colors.textSecondary} />,
+      iconActive: <Ionicons name="help-circle" size={24} color={colors.accent} />,
     },
     {
       key: 'taste',
       label: 'Taste Profile',
-      icon: <MaterialCommunityIcons name="carrot" size={22} color={colors.textSecondary} />,
-      iconActive: <MaterialCommunityIcons name="carrot" size={22} color={colors.accent} />,
+      icon: <MaterialCommunityIcons name="carrot" size={24} color={colors.textSecondary} />,
+      iconActive: <MaterialCommunityIcons name="carrot" size={24} color={colors.accent} />,
     },
   ];
 
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxs,
     paddingVertical: spacing.xxs,
     alignItems: 'center',
-    minHeight: 64,
+    height: 60,
   },
   tab: {
     flex: 1,
@@ -125,7 +125,9 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   tabActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.10)',
   },
   tabPressed: {
     opacity: 0.7,
@@ -139,8 +141,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   searchButton: {
-    width: 56,
-    height: 56,
+    width: 60,
+    height: 60,
     alignItems: 'center',
     justifyContent: 'center',
   },
